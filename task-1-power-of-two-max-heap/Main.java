@@ -12,7 +12,7 @@ public class Main {
             int n = 10_000;
             int[] values = new int[n];
             for (int i = 0; i < n; i++) {
-                values[i] = random.nextInt(2001) - 1000; // negatifler ve tekrarlar dahil
+                values[i] = random.nextInt(2001) - 1000;
                 heap.insert(values[i]);
             }
             Arrays.sort(values);
@@ -27,12 +27,12 @@ public class Main {
 
         // Kenar durumlar
         try { new PowerOfTwoMaxHeap(0).popMax(); }
-        catch (NoSuchElementException e) { System.out.println("Boş heap OK"); }
+        catch (NoSuchElementException e) { System.out.println("Empty OK"); }
 
         try { new PowerOfTwoMaxHeap(-1); }
-        catch (IllegalArgumentException e) { System.out.println("Negatif x OK"); }
+        catch (IllegalArgumentException e) { System.out.println("Negative x OK"); }
 
         try { new PowerOfTwoMaxHeap(31); }
-        catch (IllegalArgumentException e) { System.out.println("Taşan x OK"); }
+        catch (IllegalArgumentException e) { System.out.println("Overflowing x OK"); }
     }
 }
