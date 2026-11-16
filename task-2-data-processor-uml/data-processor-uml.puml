@@ -1,0 +1,105 @@
+@startuml
+skinparam classAttributeIconSize 0
+title Dynamically Reconfigurable Data Processor
+
+class DataPoint
+enum ModeIdentifier {
+  DUMP
+  PASSTHROUGH
+  VALIDATE
+}
+enum DatabaseIdentifier {
+  POSTGRES
+  REDIS
+  ELASTIC
+}
+
+class DataProcessor {
+  - modeFactory : ModeFactory
+  - databaseFactory : DatabaseFactory
+  - currentMode : ProcessingMode
+  - currentDatabase : Database
+  + DataProcessor(modeFactory : ModeFactory, databaseFactory : DatabaseFactory)
+  + configure(mode : ModeIdentifier, database : DatabaseIdentifier) : void
+  + process(dataPoint : DataPoint) : void
+}
+
+interface ProcessingMode <<Strategy>> {
+  + process(dataPoint : DataPoint, database : Database) : void
+}
+class DumpMode {
+  + process(dataPoint : DataPoint, database : Database) : void
+}
+class PassthroughMode {
+  + process(dataPoint : DataPoint, database : Database) : void
+}
+class ValidateMode {
+  + process(dataPoint : DataPoint, database : Database) : void
+}
+
+interface Database <<Strategy>> {
+  + connect() : void
+  + insert(dataPoint : DataPoint) : void
+  + validate(dataPoint : DataPoint) : boolean
+}
+class PostgresDatabase {
+  + connect() : void
+  + insert(dataPoint : DataPoint) : void
+  + validate(dataPoint : DataPoint) : boolean
+}
+class RedisDatabase {
+  + connect() : void
+  + insert(dataPoint : DataPoint) : void
+  + validate(dataPoint : DataPoint) : boolean
+}
+class ElasticDatabase {
+  + connect() : void
+  + insert(dataPoint : DataPoint) : void
+  + validate(dataPoint : DataPoint) : boolean
+}
+
+class ModeFactory <<Factory>> {
+  - modes : Map<ModeIdentifier, ProcessingMode>
+  + register(id : ModeIdentifier, mode : ProcessingMode) : void
+  + getMode(id : ModeIdentifier) : ProcessingMode
+}
+class DatabaseFactory <<Factory>> {
+  - databases : Map<DatabaseIdentifier, Database>
+  + register(id : DatabaseIdentifier, database : Database) : void
+  + getDatabase(id : DatabaseIdentifier) : Database
+}
+
+DataProcessor o--> ModeFactory
+DataProcessor o--> DatabaseFactory
+DataProcessor --> "1" ProcessingMode : currentMode
+DataProcessor --> "1" Database : currentDatabase
+DataProcessor ..> ModeIdentifier
+DataProcessor ..> DatabaseIdentifier
+DataProcessor ..> DataPoint
+
+ProcessingMode <|.. DumpMode
+ProcessingMode <|.. PassthroughMode
+ProcessingMode <|.. ValidateMode
+ProcessingMode ..> Database : uses
+
+Database <|.. PostgresDatabase
+Database <|.. RedisDatabase
+Database <|.. ElasticDatabase
+
+ModeFactory o--> "*" ProcessingMode
+DatabaseFactory o--> "*" Database
+
+note right of ValidateMode
+  if database.validate(dataPoint)
+     then database.insert(dataPoint)
+end note
+note right of DumpMode
+  drops the data (no-op)
+end note
+note bottom of DataProcessor
+  configure(): currentMode = modeFactory.getMode(mode)
+               currentDatabase = databaseFactory.getDatabase(database)
+               currentDatabase.connect()
+  process():   currentMode.process(dataPoint, currentDatabase)
+end note
+@enduml
