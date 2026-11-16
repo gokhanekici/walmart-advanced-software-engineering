@@ -1,0 +1,85 @@
+Table manufacturer {
+  id integer [pk, increment]
+  name varchar [not null]
+}
+
+Table animal {
+  id integer [pk, increment]
+  name varchar [not null, unique]
+}
+
+Table product {
+  id integer [pk, increment]
+  name varchar [not null]
+  manufacturer_id integer [not null, ref: > manufacturer.id]
+}
+
+Table pet_food {
+  product_id integer [pk, ref: - product.id]
+  weight decimal [not null]
+  flavor varchar
+  target_health_condition varchar
+}
+
+Table pet_toy {
+  product_id integer [pk, ref: - product.id]
+  material varchar
+  durability varchar
+}
+
+Table pet_apparel {
+  product_id integer [pk, ref: - product.id]
+  color varchar
+  size varchar
+  care_instructions text
+}
+
+Table product_animal {
+  product_id integer [ref: > product.id]
+  animal_id integer [ref: > animal.id]
+  indexes {
+    (product_id, animal_id) [pk]
+  }
+}
+
+Table customer {
+  id integer [pk, increment]
+  name varchar [not null]
+  email varchar [not null, unique]
+}
+
+Table customer_transaction {
+  id integer [pk, increment]
+  customer_id integer [not null, ref: > customer.id]
+  transaction_date date [not null]
+}
+
+Table transaction_item {
+  transaction_id integer [ref: > customer_transaction.id]
+  product_id integer [ref: > product.id]
+  quantity integer [not null, default: 1]
+  indexes {
+    (transaction_id, product_id) [pk]
+  }
+}
+
+Table location {
+  id integer [pk, increment]
+  name varchar [not null]
+  zip_code varchar(10) [not null]
+}
+
+Table shipment {
+  id integer [pk, increment]
+  origin_location_id integer [not null, ref: > location.id]
+  destination_location_id integer [not null, ref: > location.id]
+}
+
+Table shipment_item {
+  shipment_id integer [ref: > shipment.id]
+  product_id integer [ref: > product.id]
+  quantity integer [not null]
+  indexes {
+    (shipment_id, product_id) [pk]
+  }
+}
